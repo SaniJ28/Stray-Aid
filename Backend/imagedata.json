@@ -1,0 +1,62 @@
+[
+    {
+        "case_id": 59,
+        "prediction": "Injured",
+        "image_path": "uploads\\istockphoto-1200799727-612x612.jpg",
+        "user_input": "Bleeding, Wounded, Malnourished, Skin condition"
+    },
+    {
+        "case_id": 60,
+        "prediction": "Injured",
+        "image_path": "uploads\\istockphoto-1200799727-612x612.jpg",
+        "user_input": "Bleeding, Malnourished, Skin condition"
+    },
+    {
+        "case_id": 61,
+        "prediction": "Injured",
+        "image_path": "uploads\\maxresdefault.jpg",
+        "user_input": "Wounded, Malnourished, Bleeding"
+    },
+    {
+        "case_id": 62,
+        "prediction": "Injured",
+        "image_path": "uploads\\istockphoto-1200799727-612x612.jpg",
+        "user_input": "Bleeding, Wounded"
+    },
+    {
+        "case_id": 63,
+        "prediction": "Injured",
+        "image_path": "uploads\\istockphoto-1200799727-612x612.jpg",
+        "user_input": "Bleeding, Wounded"
+    },
+    {
+        "case_id": 64,
+        "prediction": "Injured",
+        "image_path": "uploads\\maxresdefault.jpg",
+        "user_input": "Wounded"
+    },
+    {
+        "case_id": 65,
+        "prediction": "Injured",
+        "image_path": "uploads\\maxresdefault.jpg",
+        "user_input": "Wounded, Malnourished"
+    },
+    {
+        "case_id": 8,
+        "prediction": "Injured",
+        "image_path": "uploads\\343c1176-14ab-4ee0-ab23-2060d421353f.webp",
+        "user_input": "Wounded"
+    },
+    {
+        "case_id": 9,
+        "prediction": "Not Injured",
+        "image_path": "uploads\\kitty-cat-kitten-pet-45201.jpeg",
+        "user_input": "Malnourished"
+    },
+    {
+        "case_id": 10,
+        "prediction": "Injured",
+        "image_path": "uploads\\maxresdefault.jpg",
+        "user_input": "Bleeding, Wounded, Malnourished"
+    }
+]

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stray Injury Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #e6e6e69f 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 850px;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #4776E6 0%, #8E54E9 100%);
+        }
+        
+        h2 {
+            color: #444;
+            font-weight: 700;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h2 i {
+            color: #000000;
+            margin-right: 10px;
+        }
+        
+        .form-control {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+        
+        .upload-area {
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .form-control:hover, .form-control:focus {
+            border-color: #0f0f18;
+            background: #f5f5ff;
+            box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25);
+        }
+        
+        .input-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            color: #141123;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .upload-text {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .btn-upload {
+            background: linear-gradient(90deg, #4776E6 0%, #8E54E9 100%);
+            border: none;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: inline-block;
+        }
+        
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-upload:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-upload i {
+            margin-right: 8px;
+        }
+        
+        .preview-container {
+            margin-top: 25px;
+            display: none;
+        }
+        
+        .preview-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .preview-img:hover {
+            transform: scale(1.02);
+        }
+        
+        .prediction-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .badge {
+            font-size: 16px;
+            padding: 8px 15px;
+            border-radius: 30px;
+        }
+        
+        .file-input {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+        }
+        
+        #file-name {
+            margin-top: 10px;
+            color: #6c5ce7;
+            font-weight: 600;
+        }
+        
+        .upload-area {
+            transition: all 0.3s;
+        }
+        
+        .upload-area.has-image {
+            padding: 15px;
+        }
+        
+        .reset-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+            border-radius: 30px;
+            padding: 8px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .reset-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            color: #6c5ce7;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #6c5ce7;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .form-section {
+            background: #e7d7d787;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            transition: all 0.3s;
+        }
+        
+        .form-section:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-section h4 {
+            margin-bottom: 15px;
+            color: #6c5ce7;
+            font-weight: 600;
+        }
+        
+        .form-section h4 i {
+            margin-right: 8px;
+        }
+        
+        .info-textarea {
+            min-height: 150px;
+            border: 1px solid #ddd;
+        }
+        
+        .map-container {
+            height: 250px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        
+        .location-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .location-btn {
+            flex: 1;
+            border: none;
+            background: #f1f3f4;
+            color: #555;
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .location-btn i {
+            margin-right: 8px;
+        }
+        
+        .location-btn:hover {
+            background: #e9ecef;
+            color: #6c5ce7;
+        }
+        
+        .location-btn.active {
+            background: #6c5ce7;
+            color: white;
+        }
+        
+        .address-input {
+            border-radius: 30px;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+        }
+        
+        .injury-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .injury-tag {
+            background: #e9ecef;
+            color: #555;
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .injury-tag:hover {
+            background: #d1d7dd;
+        }
+        
+        .injury-tag.selected {
+            background: #6c5ce7;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-paw"></i>Stray Injury Reporting Portal</h2>
+        <form action="/" method="post" enctype="multipart/form-data" id="upload-form">
+            <div class="form-section">
+                <h4><i class="fas fa-image"></i>Upload Photo</h4>
+                <div class="position-relative mb-4">
+                    <div class="form-control upload-area" id="upload-area">
+                        <div class="input-label" id="upload-label">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <div class="upload-text">Drag and drop an image or click to browse</div>
+                            <div id="file-name"></div>
+                        </div>
+                        <input type="file" name="file" class="file-input" accept="image/*" required id="file-input">
+                    </div>
+                </div>
+                
+                <div class="preview-container" id="preview-container">
+                    <img id="image-preview" class="preview-img" src="" alt="Image Preview">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4><i class="fas fa-clipboard-list"></i>Animal Information</h4>
+                <div class="mb-3">
+                    <label for="user_input" class="form-label"><strong>Describe the condition of the stray animal or the inital diagnosis</strong></label>
+                    <div class="injury-tags">
+                        <span class="injury-tag" onclick="addToTextarea('Limping')">Limping</span>
+                        <span class="injury-tag" onclick="addToTextarea('Bleeding')">Bleeding</span>
+                        <span class="injury-tag" onclick="addToTextarea('Wounded')">Wounded</span>
+                        <span class="injury-tag" onclick="addToTextarea('Malnourished')">Malnourished</span>
+                        <span class="injury-tag" onclick="addToTextarea('Skin condition')">Skin condition</span>
+                    </div>
+                    <textarea class="form-control info-textarea mt-3" id="user_input" name="user_input" rows="5" placeholder="Describe any injuries, behavior, or other relevant information about the stray animal..."></textarea>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4><i class="fas fa-map-marker-alt"></i>Location Information</h4>
+                <div class="location-buttons">
+                    <button type="button" class="location-btn active" id="current-location-btn">
+                        <i class="fas fa-crosshairs"></i>Current Location
+                    </button>
+                    <button type="button" class="location-btn" id="manual-location-btn">
+                        <i class="fas fa-pencil-alt"></i>Enter Address
+                    </button>
+                </div>
+                
+                <div id="address-input-container" style="display: none;" class="mb-3">
+                    <input type="text" class="form-control address-input" id="address-input" name="address" placeholder="Enter the address or location description">
+                </div>
+                
+                <div class="map-container" id="map">
+                    <!-- Map placeholder -->
+                    <img src="/api/placeholder/800/250" alt="Map" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                
+                <!-- Hidden inputs to store location data -->
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="location_description" name="location_description">
+            </div>
+            
+            <div>
+                <button type="submit" class="btn-upload" id="analyze-btn" disabled>
+                    <i class="fas fa-search"></i>Make Report 
+                </button>
+                <button type="button" class="reset-btn" id="reset-btn" style="display: none;">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+            <button onclick="triggerScripts()" class="btn-upload">Trigger NLP & WhatsApp</button>
+
+            <script>
+                function triggerScripts() {
+                    fetch('/trigger')
+                    .then(response => response.json())
+                    .then(data => alert(data.message))
+                    .catch(error => console.error("Error:", error));
+                }
+            </script>
+
+            
+            
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div> Analyzing image...
+            </div>
+        </form>
+        
+        <div class="prediction-container" id="prediction-container" style="display: none;">
+            <h3>Prediction: 
+                <span class="badge bg-success" id="prediction-badge">
+                    <i class="fas fa-check-circle" id="prediction-icon"></i>
+                    <span id="prediction-text">Healthy</span>
+                </span>
+            </h3>
+            <div id="prediction-details" class="mt-3">
+                <!-- <p>Based on the image analysis, this animal appears to be in good health with no visible injuries.</p> -->
+            </div>
+            <div id="map" style="height: 400px; width: 100%;"></div>
+
+        </div>
+        <a href="{{ url_for('dashboard') }}">
+            <button type="button" class="reset-btn" >
+                🐾 View All Cases
+            </button>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file-input');
+            const uploadArea = document.getElementById('upload-area');
+            const uploadLabel = document.getElementById('upload-label');
+            const fileName = document.getElementById('file-name');
+            const imagePreview = document.getElementById('image-preview');
+            const previewContainer = document.getElementById('preview-container');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const form = document.getElementById('upload-form');
+            const loading = document.getElementById('loading');
+            const predictionContainer = document.getElementById('prediction-container');
+            const predictionBadge = document.getElementById('prediction-badge');
+            const predictionIcon = document.getElementById('prediction-icon');
+            const predictionText = document.getElementById('prediction-text');
+            const currentLocationBtn = document.getElementById('current-location-btn');
+            const manualLocationBtn = document.getElementById('manual-location-btn');
+            const addressInputContainer = document.getElementById('address-input-container');
+            const addressInput = document.getElementById('address-input');
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const locationDescriptionInput = document.getElementById('location_description');
+            
+            
+            // Initialize with server-provided data if available
+            {% if prediction %}
+                // This code will run if the server has returned a prediction
+                predictionText.textContent = "{{ prediction }}";
+                
+                if ("{{ prediction }}" === "Injured") {
+                    predictionBadge.className = "badge bg-danger";
+                    predictionIcon.className = "fas fa-exclamation-triangle";
+                } else {
+                    predictionBadge.className = "badge bg-success";
+                    predictionIcon.className = "fas fa-check-circle";
+                }
+                
+                // Show the prediction container
+                predictionContainer.style.display = "block";
+                
+                // If there's an image path provided by the server, use it
+                if ("{{ image_path }}") {
+                    imagePreview.src = "{{ image_path }}";
+                    previewContainer.style.display = "block";
+                }
+            {% endif %}
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    
+                    // Show file name
+                    fileName.textContent = file.name;
+                    
+                    // Create object URL for preview
+                    const objectUrl = URL.createObjectURL(file);
+                    imagePreview.src = objectUrl;
+                    
+                    // Show preview
+                    previewContainer.style.display = "block";
+                    
+                    // Change upload area style
+                    uploadArea.classList.add('has-image');
+                    uploadLabel.innerHTML = '<i class="fas fa-check upload-icon" style="color: #4CAF50;"></i><div class="upload-text">Image Selected</div>';
+                    
+                    // Enable analyze button
+                    analyzeBtn.disabled = false;
+                    
+                    // Show reset button
+                    resetBtn.style.display = "inline-block";
+                    
+                    // Hide prediction if present
+                    predictionContainer.style.display = "none";
+                }
+            });
+               
+            
+            // Reset button functionality
+            resetBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Reset file input
+                fileInput.value = "";
+                
+                // Hide preview
+                previewContainer.style.display = "none";
+                
+                // Reset upload area
+                uploadArea.classList.remove('has-image');
+                uploadLabel.innerHTML = '<i class="fas fa-cloud-upload-alt upload-icon"></i><div class="upload-text">Drag and drop an image or click to browse</div><div id="file-name"></div>';
+                
+                // Disable analyze button
+                analyzeBtn.disabled = true;
+                
+                // Hide reset button
+                resetBtn.style.display = "none";
+                
+                // Hide prediction if present
+                predictionContainer.style.display = "none";
+            });
+            
+            // Form submission
+            form.addEventListener('submit', function() {
+                loading.style.display = "block";
+                analyzeBtn.disabled = true;
+            });
+            
+            // Drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                uploadArea.style.borderColor = "#6c5ce7";
+                uploadArea.style.backgroundColor = "#f5f5ff";
+            }
+            
+            function unhighlight() {
+                uploadArea.style.borderColor = "#ddd";
+                uploadArea.style.backgroundColor = "#f9f9f9";
+            }
+            
+            uploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files && files.length) {
+                    fileInput.files = files;
+                    // Trigger change event
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            }
+            let map = L.map('map').setView([20, 78], 5); // Default India center
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            let marker;
+
+            function updateMap(lat, lng) {
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+                map.setView([lat, lng], 15);
+            }
+
+            // Get Current Location
+            currentLocationBtn.addEventListener("click", function () {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        let lat = position.coords.latitude;
+                        let lng = position.coords.longitude;
+                        updateMap(lat, lng);
+                        console.log("Location updated:", lat, lng);
+                    });
+                }
+            });
+
+            // Address Input ke liye Geocoding (Using Nominatim API)
+            addressInput.addEventListener("input", async function () {
+                let address = this.value;
+                let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${address}`);
+                let data = await response.json();
+                if (data.length > 0) {
+                    let lat = data[0].lat;
+                    let lon = data[0].lon;
+                    updateMap(lat, lon);
+                    console.log("Address updated:", address, lat, lon);
+                }
+            });
+
+            
+            // Location toggle
+            currentLocationBtn.addEventListener('click', function() {
+                currentLocationBtn.classList.add('active');
+                manualLocationBtn.classList.remove('active');
+                addressInputContainer.style.display = 'none';
+                
+                // Get current location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        latitudeInput.value = position.coords.latitude;
+                        longitudeInput.value = position.coords.longitude;
+                        locationDescriptionInput.value = 'Current location';
+                        
+                        // In a real implementation, here you would update the map with the current location
+                        console.log('Location updated:', position.coords.latitude, position.coords.longitude);
+                    });
+                }
+            });
+            
+            manualLocationBtn.addEventListener('click', function() {
+                manualLocationBtn.classList.add('active');
+                currentLocationBtn.classList.remove('active');
+                addressInputContainer.style.display = 'block';
+            });
+            
+            addressInput.addEventListener('input', function() {
+                locationDescriptionInput.value = this.value;
+                
+                // In a real implementation, here you would geocode the address and update the map
+                // This is a placeholder for that functionality
+                console.log('Address updated:', this.value);
+            });
+            
+            // Initialize by attempting to get current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    latitudeInput.value = position.coords.latitude;
+                    longitudeInput.value = position.coords.longitude;
+                    locationDescriptionInput.value = 'Current location';
+                    
+                    // In a real implementation, here you would update the map with the current location
+                    console.log('Initial location:', position.coords.latitude, position.coords.longitude);
+                });
+            }
+        });
+        
+        // Function to add tags to textarea
+        function addToTextarea(tag) {
+            const textarea = document.getElementById('user_input');
+            if (textarea.value) {
+                textarea.value += ', ' + tag;
+            } else {
+                textarea.value = tag;
+            }
+            
+            // Toggle selected class on the clicked tag
+            event.target.classList.toggle('selected');
+        }
+    </script>
+
+
+
+</a>
+
+</body>
+</html>

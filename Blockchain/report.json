@@ -1,0 +1,38 @@
+[
+    {
+      "report_id": "SH-20250308-00123",
+      "timestamp": "2025-03-08T14:30:00Z",
+      "location": {
+        "latitude": 19.0760,
+        "longitude": 72.8777,
+        "address": "Bandra West, Mumbai, India"
+      },
+      "image_url": "https://strayhelp.com/uploads/incident_00123.jpg",
+      "model_output": {
+        "prediction": "Severe Injury",
+        "confidence": 0.92,
+        "classified_as": "Open Wound",
+        "urgency_level": "High"
+      },
+      "ngo_alert_status": {
+        "sent": true,
+        "timestamp": "2025-03-08T14:35:00Z"
+      },
+      "case_status": "Pending NGO Intervention"
+    },
+    {
+      "report_id": "SH-20250308-00123",
+      "timestamp": "2025-03-08T14:30:00Z",
+      "location": "Bandra West, Mumbai, India",
+      "image_url": "https://strayhelp.com/uploads/incident_00123.jpg",
+      "prediction": "Severe Injury",
+      "confidence": 0.92,
+      "classified_as": "Open Wound",
+      "urgency_level": "High",
+      "ngo_alert_status": {
+        "sent": true,
+        "timestamp": "2025-03-08T14:35:00Z"
+      },
+      "case_status": "Pending NGO Intervention"
+    }
+  ]
