@@ -35,7 +35,7 @@ const firstAidInstructions = {
   fever: "For fever:\n1. Keep the animal cool\n2. Provide fresh water\n3. Monitor temperature\n4. Seek veterinary care if persistent"
 };
 
-const DEEPSEEK_API_KEY = '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';
+const DEEPSEEK_API_KEY = '#######################################################';
 
 const VirtualVet = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([
